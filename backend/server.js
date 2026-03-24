@@ -27,7 +27,7 @@ app.use("/api/pg", pgRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/faqs", faqRoutes);
 app.use("/api/feedback", feedbackRoutes);
-// app.use("/api/admin", adminRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Health check
 app.get("/", (req, res) => {
