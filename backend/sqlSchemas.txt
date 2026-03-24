@@ -1,0 +1,147 @@
+-- ============================================================
+--  Room Connect System (RCS) — Database Schema
+--  Database: RcsDB
+-- ============================================================
+
+CREATE DATABASE IF NOT EXISTS RcsDB;
+USE RcsDB;
+
+-- ────────────────────────────────────────────────────────────
+-- 1. ADMIN
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE Admin (
+    admin_id     VARCHAR(10)  NOT NULL,
+    admin_name   VARCHAR(50)  NOT NULL,
+    password     VARCHAR(255) NOT NULL,   -- store bcrypt hash
+    phone_no     VARCHAR(12)  NOT NULL,
+    email        VARCHAR(100) NOT NULL UNIQUE,
+    PRIMARY KEY (admin_id)
+);
+
+-- ────────────────────────────────────────────────────────────
+-- 2. PG_OWNER
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE PG_owner (
+    owner_id     VARCHAR(10)  NOT NULL,
+    owner_name   VARCHAR(50)  NOT NULL,
+    password     VARCHAR(255) NOT NULL,   -- store bcrypt hash
+    phone_no     VARCHAR(12)  NOT NULL,
+    email        VARCHAR(100) NOT NULL UNIQUE,
+    status       VARCHAR(20)  NOT NULL DEFAULT 'pending',
+                                          -- 'pending' | 'approved' | 'rejected'
+    created_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (owner_id)
+);
+
+-- ────────────────────────────────────────────────────────────
+-- 3. TENANT
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE Tenant (
+    tenant_id    VARCHAR(10)  NOT NULL,
+    tenant_name  VARCHAR(50)  NOT NULL,
+    password     VARCHAR(255) NOT NULL,   -- store bcrypt hash
+    phone_no     VARCHAR(12)  NOT NULL,
+    email        VARCHAR(100) NOT NULL UNIQUE,
+    created_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (tenant_id)
+);
+
+-- ────────────────────────────────────────────────────────────
+-- 4. PG_ROOM
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE PG_room (
+    pg_id                VARCHAR(20)  NOT NULL,
+    pg_name              VARCHAR(50)  NOT NULL,
+    room_type            VARCHAR(20)  NOT NULL,   -- e.g. 'single', 'double', 'triple'
+    owner_id             VARCHAR(10)  NOT NULL,
+    rent                 DECIMAL(8,2) NOT NULL,
+    availability_status  TINYINT(1)   NOT NULL DEFAULT 1,
+                                                  -- 1 = available, 0 = occupied
+    address              VARCHAR(100) NOT NULL,
+    pincode              VARCHAR(6)   NOT NULL,
+    city                 VARCHAR(30)  NOT NULL,
+    PRIMARY KEY (pg_id),
+    CONSTRAINT fk_pgroom_owner FOREIGN KEY (owner_id)
+        REFERENCES PG_owner(owner_id)
+        ON DELETE CASCADE
+);
+
+-- ────────────────────────────────────────────────────────────
+-- 5. ROOM_IMAGES
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE Room_images (
+    image_id   VARCHAR(20) NOT NULL,
+    pg_id      VARCHAR(20) NOT NULL,
+    image_url  TEXT        NOT NULL,
+    PRIMARY KEY (image_id),
+    CONSTRAINT fk_img_pg FOREIGN KEY (pg_id)
+        REFERENCES PG_room(pg_id)
+        ON DELETE CASCADE
+);
+
+-- ────────────────────────────────────────────────────────────
+-- 6. BOOKING
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE Booking (
+    booking_id           VARCHAR(20) NOT NULL,
+    tenant_id            VARCHAR(10) NOT NULL,
+    pg_id                VARCHAR(20) NOT NULL,
+    status               VARCHAR(20) NOT NULL DEFAULT 'pending',
+                                              -- 'pending' | 'approved' | 'rejected'
+    verification_status  VARCHAR(20) NOT NULL DEFAULT 'not_verified',
+                                              -- 'not_verified' | 'verified'
+    booking_date         DATE        NOT NULL,
+    created_at           TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (booking_id),
+    CONSTRAINT fk_booking_tenant FOREIGN KEY (tenant_id)
+        REFERENCES Tenant(tenant_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_booking_pg FOREIGN KEY (pg_id)
+        REFERENCES PG_room(pg_id)
+        ON DELETE CASCADE
+);
+
+-- ────────────────────────────────────────────────────────────
+-- 7. FEEDBACK
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE Feedback (
+    feed_id    VARCHAR(20) NOT NULL,
+    tenant_id  VARCHAR(10) NOT NULL,
+    pg_id      VARCHAR(20) NOT NULL,
+    comment    TEXT        NOT NULL,
+    rating     TINYINT     NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    created_at TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (feed_id),
+    CONSTRAINT fk_feed_tenant FOREIGN KEY (tenant_id)
+        REFERENCES Tenant(tenant_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_feed_pg FOREIGN KEY (pg_id)
+        REFERENCES PG_room(pg_id)
+        ON DELETE CASCADE
+);
+
+-- ────────────────────────────────────────────────────────────
+-- 8. FAQs
+-- ────────────────────────────────────────────────────────────
+CREATE TABLE FAQs (
+    ques_id    VARCHAR(20) NOT NULL,
+    owner_id   VARCHAR(10) NOT NULL,
+    pg_id      VARCHAR(20) NOT NULL,
+    tenant_id  VARCHAR(10) NOT NULL,
+    question   TEXT        NOT NULL,
+    answer     TEXT        NOT NULL,
+    PRIMARY KEY (ques_id),
+    CONSTRAINT fk_faq_owner  FOREIGN KEY (owner_id)
+        REFERENCES PG_owner(owner_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_faq_pg     FOREIGN KEY (pg_id)
+        REFERENCES PG_room(pg_id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_faq_tenant FOREIGN KEY (tenant_id)
+        REFERENCES Tenant(tenant_id)
+        ON DELETE CASCADE
+);
+
+-- ============================================================
+-- END OF SCHEMA
+-- ============================================================
