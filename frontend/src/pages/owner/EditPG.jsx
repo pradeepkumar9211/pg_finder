@@ -6,35 +6,40 @@ import Layout from '../../components/Layout';
 
 const EditPG = () => {
   const { pg_id } = useParams();
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    pg_name:             '',
-    room_type:           'single',
-    rent:                '',
-    address:             '',
-    pincode:             '',
-    city:                '',
+    pg_name: '',
+    room_type: 'single',
+    rent: '',
+    address: '',
+    pincode: '',
+    city: '',
     availability_status: 1,
   });
 
+  const [existingImages, setExistingImages] = useState([]);
+  const [newImages, setNewImages] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving]   = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const fetchPG = async () => {
       try {
         const res = await API.get(`/pg/${pg_id}`);
-        const pg  = res.data.data;
+        const pg = res.data.data;
+
         setFormData({
-          pg_name:             pg.pg_name,
-          room_type:           pg.room_type,
-          rent:                pg.rent,
-          address:             pg.address,
-          pincode:             pg.pincode,
-          city:                pg.city,
+          pg_name: pg.pg_name,
+          room_type: pg.room_type,
+          rent: pg.rent,
+          address: pg.address,
+          pincode: pg.pincode,
+          city: pg.city,
           availability_status: pg.availability_status,
         });
+
+        setExistingImages(pg.images || []);
       } catch (err) {
         toast.error('Failed to load PG details.');
       } finally {
@@ -49,11 +54,34 @@ const EditPG = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleDeleteImage = async (image_id) => {
+    if (!window.confirm('Delete this image?')) return;
+    try {
+      await API.delete(`/pg/${pg_id}/images/${image_id}`);
+      toast.success('Image deleted.');
+      setExistingImages((prev) => prev.filter((img) => img.image_id !== image_id));
+    } catch (err) {
+      toast.error('Failed to delete image.');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       setSaving(true);
+
+      // Step 1 — update PG details
       await API.put(`/pg/${pg_id}`, formData);
+
+      // Step 2 — upload new images if any
+      if (newImages.length > 0) {
+        const imageData = new FormData();
+        newImages.forEach((img) => imageData.append('images', img));
+        await API.post(`/pg/${pg_id}/images`, imageData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      }
+
       toast.success('PG updated successfully!');
       navigate('/my-listings');
     } catch (err) {
@@ -160,6 +188,52 @@ const EditPG = () => {
               <option value={1}>Available</option>
               <option value={0}>Not Available</option>
             </select>
+          </div>
+
+          {/* Existing images */}
+          {existingImages.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Current Images
+              </label>
+              <div className="flex flex-wrap gap-3">
+                {existingImages.map((img) => (
+                  <div key={img.image_id} className="relative">
+                    <img
+                      src={`http://localhost:5000/${img.image_url}`}
+                      alt="pg"
+                      className="w-24 h-24 object-cover rounded-lg border border-gray-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteImage(img.image_id)}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hover:bg-red-600"
+                    >
+                      x
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Upload new images */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Add New Images (optional, max 5)
+            </label>
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={(e) => setNewImages(Array.from(e.target.files))}
+              className="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100"
+            />
+            {newImages.length > 0 && (
+              <p className="text-xs text-gray-400 mt-1">
+                {newImages.length} new image(s) selected
+              </p>
+            )}
           </div>
 
           <button

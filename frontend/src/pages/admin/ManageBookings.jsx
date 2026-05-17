@@ -4,19 +4,20 @@ import API from '../../api/axios';
 import Layout from '../../components/Layout';
 
 const STATUS_STYLES = {
-  pending:  'bg-yellow-100 text-yellow-700',
+  pending: 'bg-yellow-100 text-yellow-700',
   approved: 'bg-green-100 text-green-700',
   rejected: 'bg-red-100 text-red-700',
+  cancelled: 'bg-gray-100 text-gray-600',
 };
 
 const VERIFY_STYLES = {
   not_verified: 'bg-gray-100 text-gray-600',
-  verified:     'bg-blue-100 text-blue-700',
+  verified: 'bg-blue-100 text-blue-700',
 };
 
 const ManageBookings = () => {
   const [bookings, setBookings] = useState([]);
-  const [loading, setLoading]   = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -32,6 +33,21 @@ const ManageBookings = () => {
 
     fetchBookings();
   }, []);
+
+  const handleCancel = async (booking_id) => {
+    if (!window.confirm('Are you sure you want to cancel this booking?')) return;
+    try {
+      await API.put(`/bookings/${booking_id}/cancel`);
+      toast.success('Booking cancelled successfully.');
+      setBookings((prev) =>
+        prev.map((b) =>
+          b.booking_id === booking_id ? { ...b, status: 'cancelled' } : b
+        )
+      );
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to cancel booking.');
+    }
+  };
 
   return (
     <Layout>
@@ -73,6 +89,19 @@ const ManageBookings = () => {
                     </span>
                   </div>
                 </div>
+
+                {/* Cancel button */}
+                {booking.status !== 'cancelled' && booking.status !== 'rejected' && (
+                  <div className="mt-4">
+                    <button
+                      onClick={() => handleCancel(booking.booking_id)}
+                      className="text-sm bg-red-50 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-100"
+                    >
+                      Cancel Booking
+                    </button>
+                  </div>
+                )}
+
               </div>
             ))}
           </div>

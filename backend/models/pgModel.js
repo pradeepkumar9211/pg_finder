@@ -38,9 +38,14 @@ const findPGsByOwner = async (owner_id) => {
 const searchPGs = async (filters) => {
   const { city, pincode, room_type } = filters;
 
-  let query = `SELECT p.*, o.owner_name FROM PG_room p
-               JOIN PG_owner o ON p.owner_id = o.owner_id
-               WHERE p.availability_status = 1`;
+  let query = `
+    SELECT p.*, o.owner_name,
+           GROUP_CONCAT(i.image_url) AS images
+    FROM PG_room p
+    JOIN PG_owner o ON p.owner_id = o.owner_id
+    LEFT JOIN Room_images i ON p.pg_id = i.pg_id
+    WHERE p.availability_status = 1`;
+
   const params = [];
 
   if (city) {
@@ -56,8 +61,15 @@ const searchPGs = async (filters) => {
     params.push(room_type);
   }
 
+  query += ` GROUP BY p.pg_id`;
+
   const [rows] = await db.query(query, params);
-  return rows;
+
+  // Convert comma-separated images string into an array
+  return rows.map((pg) => ({
+    ...pg,
+    images: pg.images ? pg.images.split(",") : [],
+  }));
 };
 
 const updatePG = async (pg_id, data) => {

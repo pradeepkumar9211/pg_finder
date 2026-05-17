@@ -57,6 +57,15 @@ const updateBookingStatus = async (booking_id, status) => {
     status,
     booking_id,
   ]);
+
+  // If approved, mark the PG as unavailable
+  if (status === "approved") {
+    await db.query(
+      `UPDATE PG_room SET availability_status = 0
+       WHERE pg_id = (SELECT pg_id FROM Booking WHERE booking_id = ?)`,
+      [booking_id],
+    );
+  }
 };
 
 const checkExistingBooking = async (tenant_id, pg_id) => {
@@ -68,6 +77,20 @@ const checkExistingBooking = async (tenant_id, pg_id) => {
   return rows[0];
 };
 
+const cancelBooking = async (booking_id) => {
+  await db.query(
+    `UPDATE Booking SET status = 'cancelled' WHERE booking_id = ?`,
+    [booking_id]
+  );
+
+  // Mark PG as available again
+  await db.query(
+    `UPDATE PG_room SET availability_status = 1
+     WHERE pg_id = (SELECT pg_id FROM Booking WHERE booking_id = ?)`,
+    [booking_id]
+  );
+};
+
 module.exports = {
   createBooking,
   findBookingById,
@@ -76,4 +99,5 @@ module.exports = {
   updateVerificationStatus,
   updateBookingStatus,
   checkExistingBooking,
+  cancelBooking
 };

@@ -63,18 +63,22 @@ const AdminDashboard = () => {
         )}
 
         {/* Quick links */}
-        <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
           <a href="/admin/owners" className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md transition">
-            <h3 className="font-semibold text-gray-800 mb-1">Manage Owners</h3>
-            <p className="text-sm text-gray-500">Approve or reject PG owner registrations</p>
+            <h3 className="font-semibold text-gray-800 mb-1">Owners</h3>
+            <p className="text-sm text-gray-500">Approve or reject owners</p>
+          </a>
+          <a href="/admin/tenants" className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md transition">
+            <h3 className="font-semibold text-gray-800 mb-1">Tenants</h3>
+            <p className="text-sm text-gray-500">View all registered tenants</p>
           </a>
           <a href="/admin/pgs" className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md transition">
-            <h3 className="font-semibold text-gray-800 mb-1">Manage PGs</h3>
-            <p className="text-sm text-gray-500">View and remove PG listings</p>
+            <h3 className="font-semibold text-gray-800 mb-1">PG Listings</h3>
+            <p className="text-sm text-gray-500">View and remove listings</p>
           </a>
           <a href="/admin/bookings" className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md transition">
-            <h3 className="font-semibold text-gray-800 mb-1">Manage Bookings</h3>
-            <p className="text-sm text-gray-500">View all bookings across all PGs</p>
+            <h3 className="font-semibold text-gray-800 mb-1">Bookings</h3>
+            <p className="text-sm text-gray-500">View all bookings</p>
           </a>
         </div>
 

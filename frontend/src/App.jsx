@@ -17,6 +17,10 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import ManageOwners from './pages/admin/ManageOwners';
 import ManagePGs from './pages/admin/ManagePGs';
 import AdminBookings from './pages/admin/ManageBookings';
+import OwnerDashboard from './pages/owner/OwnerDashboard';
+import TenantDashboard from './pages/tenant/TenantDashboard';
+import ManageFAQs from './pages/owner/ManageFAQs';
+import ManageTenants from './pages/admin/ManageTenants';
 
 const App = () => {
   return (
@@ -80,6 +84,32 @@ const App = () => {
           <Route path="/admin/bookings" element={
             <ProtectedRoute role="admin">
               <AdminBookings />
+            </ProtectedRoute>
+          } />
+
+          {/* Tenant dashboard */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute role="tenant">
+              <TenantDashboard />
+            </ProtectedRoute>
+          } />
+
+          {/* Owner dashboard + FAQs */}
+          <Route path="/owner-dashboard" element={
+            <ProtectedRoute role="owner">
+              <OwnerDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/manage-faqs" element={
+            <ProtectedRoute role="owner">
+              <ManageFAQs />
+            </ProtectedRoute>
+          } />
+
+          {/* Admin tenants */}
+          <Route path="/admin/tenants" element={
+            <ProtectedRoute role="admin">
+              <ManageTenants />
             </ProtectedRoute>
           } />
 

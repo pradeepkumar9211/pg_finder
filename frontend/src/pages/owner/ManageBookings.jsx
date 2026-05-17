@@ -5,18 +5,15 @@ import Layout from '../../components/Layout';
 import BookingCard from '../../components/BookingCard';
 
 const ManageBookings = () => {
-  const [listings, setListings]   = useState([]);
-  const [bookings, setBookings]   = useState([]);
-  const [loading, setLoading]     = useState(true);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAll = async () => {
       try {
         const listRes = await API.get('/pg/owner/my-listings');
         const allListings = listRes.data.data;
-        setListings(allListings);
 
-        // Fetch bookings for all PGs owned by this owner
         const bookingPromises = allListings.map((pg) =>
           API.get(`/bookings/pg/${pg.pg_id}`)
         );
@@ -63,6 +60,21 @@ const ManageBookings = () => {
     }
   };
 
+  const handleCancel = async (booking_id) => {
+    if (!window.confirm('Are you sure you want to cancel this booking?')) return;
+    try {
+      await API.put(`/bookings/${booking_id}/cancel`);
+      toast.success('Booking cancelled.');
+      setBookings((prev) =>
+        prev.map((b) =>
+          b.booking_id === booking_id ? { ...b, status: 'cancelled' } : b
+        )
+      );
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to cancel booking.');
+    }
+  };
+
   return (
     <Layout>
       <div className="max-w-4xl mx-auto px-6 py-10">
@@ -80,33 +92,47 @@ const ManageBookings = () => {
             {bookings.map((booking) => (
               <BookingCard key={booking.booking_id} booking={booking}>
 
-                {/* Verify button — only if not verified yet */}
-                {booking.verification_status === 'not_verified' && (
-                  <button
-                    onClick={() => handleVerify(booking.booking_id)}
-                    className="text-sm bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-100"
-                  >
-                    Mark as Verified
-                  </button>
-                )}
+                {/* Verify — only if not verified and not cancelled or rejected */}
+                {booking.verification_status === 'not_verified' &&
+                  booking.status !== 'cancelled' &&
+                  booking.status !== 'rejected' && (
+                    <button
+                      onClick={() => handleVerify(booking.booking_id)}
+                      className="text-sm bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-100"
+                    >
+                      Mark as Verified
+                    </button>
+                  )}
 
-                {/* Approve/Reject — only if verified and still pending */}
-                {booking.verification_status === 'verified' && booking.status === 'pending' && (
-                  <>
+                {/* Approve + Reject — only if verified and still pending */}
+                {booking.verification_status === 'verified' &&
+                  booking.status === 'pending' && (
+                    <>
+                      <button
+                        onClick={() => handleStatus(booking.booking_id, 'approved')}
+                        className="text-sm bg-green-50 text-green-600 px-3 py-1.5 rounded-lg hover:bg-green-100"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleStatus(booking.booking_id, 'rejected')}
+                        className="text-sm bg-red-50 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-100"
+                      >
+                        Reject
+                      </button>
+                    </>
+                  )}
+
+                {/* Cancel — only if not already cancelled or rejected */}
+                {booking.status !== 'cancelled' &&
+                  booking.status !== 'rejected' && (
                     <button
-                      onClick={() => handleStatus(booking.booking_id, 'approved')}
-                      className="text-sm bg-green-50 text-green-600 px-3 py-1.5 rounded-lg hover:bg-green-100"
+                      onClick={() => handleCancel(booking.booking_id)}
+                      className="text-sm bg-gray-50 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-100"
                     >
-                      Approve
+                      Cancel
                     </button>
-                    <button
-                      onClick={() => handleStatus(booking.booking_id, 'rejected')}
-                      className="text-sm bg-red-50 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-100"
-                    >
-                      Reject
-                    </button>
-                  </>
-                )}
+                  )}
 
               </BookingCard>
             ))}

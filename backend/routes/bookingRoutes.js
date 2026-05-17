@@ -7,6 +7,7 @@ const {
   getBookingById,
   verifyTenant,
   updateStatus,
+  revokeBooking,
 } = require("../controllers/bookingController");
 
 const { verifyToken, authorizeRole } = require("../middleware/authMiddleware");
@@ -45,4 +46,5 @@ BookingRouter.put(
   updateStatus,
 );
 
+BookingRouter.put('/:booking_id/cancel', verifyToken, revokeBooking);
 module.exports = BookingRouter;

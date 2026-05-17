@@ -1,12 +1,13 @@
 const STATUS_STYLES = {
-  pending:  'bg-yellow-100 text-yellow-700',
+  pending: 'bg-yellow-100 text-yellow-700',
   approved: 'bg-green-100 text-green-700',
   rejected: 'bg-red-100 text-red-700',
+  cancelled: 'bg-gray-100 text-gray-600',
 };
 
 const VERIFY_STYLES = {
   not_verified: 'bg-gray-100 text-gray-600',
-  verified:     'bg-blue-100 text-blue-700',
+  verified: 'bg-blue-100 text-blue-700',
 };
 
 const BookingCard = ({ booking, children }) => {
@@ -36,18 +37,14 @@ const BookingCard = ({ booking, children }) => {
       </p>
 
       {booking.tenant_name && (
-        <p className="text-sm text-gray-500 mb-1">
-          Tenant: {booking.tenant_name}
-        </p>
+        <p className="text-sm text-gray-500 mb-1">Tenant: {booking.tenant_name}</p>
       )}
 
       {booking.city && (
-        <p className="text-sm text-gray-500 mb-1">
-          Location: {booking.city}
-        </p>
+        <p className="text-sm text-gray-500 mb-1">Location: {booking.city}</p>
       )}
 
-      {/* Action buttons passed from parent page */}
+      {/* Action buttons passed from parent */}
       {children && (
         <div className="mt-4 flex gap-2 flex-wrap">
           {children}

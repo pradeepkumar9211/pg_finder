@@ -6,18 +6,18 @@ import Layout from '../components/Layout';
 import { useAuth } from '../context/AuthContext';
 
 const PGDetails = () => {
-  const { pg_id }     = useParams();
-  const { user }      = useAuth();
+  const { pg_id } = useParams();
+  const { user } = useAuth();
 
-  const [pg, setPG]             = useState(null);
-  const [faqs, setFaqs]         = useState([]);
+  const [pg, setPG] = useState(null);
+  const [faqs, setFaqs] = useState([]);
   const [feedback, setFeedback] = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [booking, setBooking]   = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [booking, setBooking] = useState(false);
 
   const [question, setQuestion] = useState('');
-  const [comment, setComment]   = useState('');
-  const [rating, setRating]     = useState(5);
+  const [comment, setComment] = useState('');
+  const [rating, setRating] = useState(5);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -165,7 +165,7 @@ const PGDetails = () => {
                 <div key={faq.ques_id} className="border-b border-gray-50 pb-4">
                   <p className="text-sm font-medium text-gray-800">Q: {faq.question}</p>
                   <p className="text-sm text-gray-500 mt-1">
-                    {faq.answer ? `A: ${faq.answer}` : 'No answer yet.'}
+                    {faq.answer ? `A: ${faq.answer}` : 'No answer yet from owner.'}
                   </p>
                   <p className="text-xs text-gray-400 mt-1">Asked by {faq.tenant_name}</p>
                 </div>

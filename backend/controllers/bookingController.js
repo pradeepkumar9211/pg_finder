@@ -6,6 +6,7 @@ const {
   updateVerificationStatus,
   updateBookingStatus,
   checkExistingBooking,
+  cancelBooking
 } = require("../models/bookingModel");
 
 const generateBookingId = () => `BKG${Date.now().toString().slice(-8)}`;
@@ -182,6 +183,40 @@ const updateStatus = async (req, res, next) => {
   }
 };
 
+// / PUT /api/bookings/:booking_id/cancel
+const revokeBooking = async (req, res, next) => {
+  try {
+    const booking = await findBookingById(req.params.booking_id);
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found.' });
+    }
+
+    // Only approved bookings can be cancelled
+    if (booking.status === 'cancelled') {
+      return res.status(400).json({ success: false, message: 'Booking is already cancelled.' });
+    }
+
+    if (booking.status === 'rejected') {
+      return res.status(400).json({ success: false, message: 'Rejected bookings cannot be cancelled.' });
+    }
+
+    // Check who is making the request
+    const { id, role } = req.user;
+    const isOwner  = role === 'owner'  && id === booking.owner_id;
+    const isTenant = role === 'tenant' && id === booking.tenant_id;
+    const isAdmin  = role === 'admin';
+
+    if (!isOwner && !isTenant && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Access denied.' });
+    }
+
+    await cancelBooking(req.params.booking_id);
+    res.status(200).json({ success: true, message: 'Booking cancelled successfully.' });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   sendBookingRequest,
   getMyBookings,
@@ -189,4 +224,5 @@ module.exports = {
   getBookingById,
   verifyTenant,
   updateStatus,
+  revokeBooking
 };

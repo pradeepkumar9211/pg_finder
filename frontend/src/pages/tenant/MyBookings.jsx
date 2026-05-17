@@ -8,20 +8,35 @@ const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading]   = useState(true);
 
-  useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const res = await API.get('/bookings/my');
-        setBookings(res.data.data);
-      } catch (err) {
-        toast.error('Failed to load bookings.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchBookings = async () => {
+    try {
+      const res = await API.get('/bookings/my');
+      setBookings(res.data.data);
+    } catch (err) {
+      toast.error('Failed to load bookings.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchBookings();
   }, []);
+
+  const handleCancel = async (booking_id) => {
+    if (!window.confirm('Are you sure you want to cancel this booking?')) return;
+    try {
+      await API.put(`/bookings/${booking_id}/cancel`);
+      toast.success('Booking cancelled.');
+      setBookings((prev) =>
+        prev.map((b) =>
+          b.booking_id === booking_id ? { ...b, status: 'cancelled' } : b
+        )
+      );
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to cancel booking.');
+    }
+  };
 
   return (
     <Layout>
@@ -38,7 +53,16 @@ const MyBookings = () => {
         ) : (
           <div className="space-y-4">
             {bookings.map((booking) => (
-              <BookingCard key={booking.booking_id} booking={booking} />
+              <BookingCard key={booking.booking_id} booking={booking}>
+                {booking.status !== 'cancelled' && booking.status !== 'rejected' && (
+                  <button
+                    onClick={() => handleCancel(booking.booking_id)}
+                    className="text-sm bg-red-50 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-100"
+                  >
+                    Cancel Booking
+                  </button>
+                )}
+              </BookingCard>
             ))}
           </div>
         )}

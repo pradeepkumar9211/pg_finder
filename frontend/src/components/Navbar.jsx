@@ -37,9 +37,11 @@ const Navbar = () => {
             </>
           )}
 
-          {/* Tenant links */}
           {user?.role === 'tenant' && (
             <>
+              <Link to="/dashboard" className="text-gray-600 hover:text-blue-600 text-sm">
+                Dashboard
+              </Link>
               <Link to="/search" className="text-gray-600 hover:text-blue-600 text-sm">
                 Find PG
               </Link>
@@ -49,17 +51,19 @@ const Navbar = () => {
             </>
           )}
 
-          {/* Owner links */}
           {user?.role === 'owner' && (
             <>
+              <Link to="/owner-dashboard" className="text-gray-600 hover:text-blue-600 text-sm">
+                Dashboard
+              </Link>
               <Link to="/my-listings" className="text-gray-600 hover:text-blue-600 text-sm">
                 My Listings
               </Link>
-              <Link to="/add-pg" className="text-gray-600 hover:text-blue-600 text-sm">
-                Add PG
-              </Link>
               <Link to="/manage-bookings" className="text-gray-600 hover:text-blue-600 text-sm">
                 Bookings
+              </Link>
+              <Link to="/manage-faqs" className="text-gray-600 hover:text-blue-600 text-sm">
+                FAQs
               </Link>
             </>
           )}
